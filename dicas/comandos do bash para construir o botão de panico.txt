@@ -1,0 +1,4 @@
+pi@raspberrypi:~ $ pkill -9 -f script.py
+pi@raspberrypi:~ $ pkill -9 -f janela_principal.py
+pi@raspberrypi:~ $ pkill -9 -f Motor.py
+pi@raspberrypi:~ $ 

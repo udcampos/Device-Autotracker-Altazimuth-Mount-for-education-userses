@@ -1,0 +1,1 @@
+A quantidade total de passos de uma volta de 360º para a engrenagem 5 dentes foi de 5155, resultando em um angulo por passo de 0,069835111
