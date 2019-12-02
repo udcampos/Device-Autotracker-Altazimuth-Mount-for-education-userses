@@ -286,122 +286,53 @@ class AchaEstrela:
     
     
     
-    def acha_azimute_primeira_estrela(self,azimute_anterior):
-        
+    def acha_azimute_primeira_estrela(self):        
         azimute = self.azimute_decimal()
         #  Guarda o valor no em um vetor
         self.vetor_azimute(azimute)
-        sleep(0.1)
+        ##sleep(0.1)
         #  Define o lado que vai rodar
-        if azimute < 180:
-            self.aciona_motor_horizontal_horario(azimute)
-            return azimute
-        else:
-            valor = 360 - azimute
-            resultado = self.aciona_motor_horizontal_anti_horario(valor)
-        
-    
-        
-        
-        
-        
-        
-
-    def primeira_estrela(self):
-        azimute = self.azimute_decimal()
-        #  Guarda o valor no em um vetor
-        self.vetor_azimute(azimute)
-        sleep(1)
-        #  Define o lado que vai rodar
-        if azimute < 180:
-            resultado = self.aciona_motor_horizontal_horario(azimute)
-            if resultado:
-            #  Alteração verificação do azimute
-                azimute1 = self.azimute_decimal()
-                if azimute > azimute1:
-                    del self.vetor_guarda_azimute[-1]
-                    self.vetor_azimute(azimute1)
-                    diferenca = (azimute - azimute1)
-                    resultado = self.aciona_motor_horizontal_anti_horario(diferenca)
-                    if resultado:
-                        altura = self.altura_decimal()
-                        self.vetor_altura(altura)
-                        self.aciona_motor_vertical_horario(altura)
-                        return True
-                    else:
-                        print("algo deu errado1")
-                        return False
-
-                elif azimute < azimute1:
-                    del self.vetor_guarda_azimute[-1]
-                    self.vetor_azimute(azimute1)
-                    diferenca = (azimute1-azimute)
-                    resultado = self.aciona_motor_horizontal_horario(diferenca)
-
-                    if resultado:
-                        altura = self.altura_decimal()
-                        self.vetor_altura(altura)
-                        self.aciona_motor_vertical_horario(altura)
-                        return True
-
-                    else:
-                        print("algo deu errado2")
-                        return False
-
-                else:
-                    if resultado:
-                        altura = self.altura_decimal()
-                        self.vetor_altura(altura)
-                        self.aciona_motor_vertical_horario(altura)
-                        return True
-                    else:
-                        print("algo deu errado3")
-                        return False
-
+        if azimute<180:
+            resultado= self.aciona_motor_horizontal_horario(azimute)
+            return resultado
         else:
             #  Se não girar de um lado, gira do outro
             valor = 360 - azimute
             resultado = self.aciona_motor_horizontal_anti_horario(valor)
-            if resultado:
-                azimute1 = self.azimute_decimal()
-                if azimute > azimute1:
-                    del self.vetor_guarda_azimute[-1]
-                    self.vetor_azimute(azimute1)
-                    diferenca = (azimute-azimute1)
-                    resultado = self.aciona_motor_horizontal_anti_horario(diferenca)
+            return resultado
+        
+        
+    def acha_altura_primeira_estrela(self):
+        altura=self.altura_decimal()
+        self.vetor_altura(altura)
+        resultado=self.aciona_motor_vertical_horario(altura)
+        return resultado       
 
-                    if resultado:
-                        altura = self.altura_decimal()
-                        self.vetor_altura(altura)
-                        self.aciona_motor_vertical_horario(altura)
-                        return True
-                    else:
-                        print("algo deu errado4")
-                        return False
-
-                elif azimute < azimute1:
-                    del self.vetor_guarda_azimute[-1]
-                    self.vetor_azimute(azimute1)
-                    diferenca = (azimute1 - azimute)
-                    resultado = self.aciona_motor_horizontal_horario(diferenca)
-                    if resultado:
-                        altura = self.altura_decimal()
-                        self.vetor_altura(altura)
-                        self.aciona_motor_vertical_horario(altura)
-                        return True
-                    else:
-                        print("algo deu errado5")
-                        return False
-
-                else:
-                    if resultado:
-                        altura = self.altura_decimal()
-                        self.vetor_altura(altura)
-                        self.aciona_motor_vertical_horario(altura)
-                        return True
-                    else:
-                        print("algo deu errado6")
-                        return False
+    def primeira_estrela(self):
+     teste_azimute=self.acha_azimute_primeira_estrela()
+     if teste_azimute:
+         teste_altura=self.acha_altura_primeira_estrela()
+         if teste_altura:
+             azimute=self.azimute_decimal()
+             self.vetor_azimute(azimute)
+             corrige_azimute=self.define_azimute_proxima_estrela()
+             if corrige_azimute:
+                 altura=self.altura_decimal()
+                 self.vetor_altura(altura)
+                 corrige_altura=self.define_altura_proxima_estrela()
+                 return corrige_altura            
+             else:
+                 print("Ocorreu algo errado na correção da azimute")
+                 return corrige_altura
+         else:
+             print("Ocorreu algo errado na altura")
+             return teste_altura
+     else:
+         print("Ocorreu algo errado no azimute")
+         return teste_azimute
+         
+             
+         
 
 ########################################################################
 
