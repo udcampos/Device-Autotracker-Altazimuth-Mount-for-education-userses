@@ -11,9 +11,8 @@ Criado em Sat Feb  2 13:28:48 2019
 ##Importa as classes dos outros arquivos
 from calibracao_telescopio_v2 import SensorMagnetico as sm
 from Motor_half_step import Motor as mt
-from Motor_drive_novo import Motor as mv
 import math
-from chave_fim_de_curso import fim_curso as fc
+
 
 """!Notas Versão 4: Essa é a classe responsável em encontrar o norte
 geográfico, já levando em consideração a declinação do
@@ -25,20 +24,20 @@ lugar, a versão 4 implementa a função fim_curso.
    !Nota versão 6: Depois de varios testes e constatar que encontrar o Norte Geográfico
    usando o sensor magnético não é muito preciso, dessa forma vou mudar o algoritmo
    para encontrar o Norte Magnético com o sensor e depois ir para o angulo da
-   declinação usando os passos do motor horizontal.   
+   declinação usando os passos do motor horizontal. 
+   !Nota versão 7: Retirada a função fim de curso, dessa forma o nivelamento
+   vai ocorrer conforme descrito no projeto.
    """
 
 class EncontraNorte:
     
     ## Função construtora
     def __init__(self,declinacao):                 
-        #self.motor_horizontal=mt(13,25,19,26)        
+        self.motor_horizontal=mt(13,25,19,26)
         self.motor_vertical=mt(12,20,16,21)
         self.declinacao=declinacao
-        self.passos_correcao_declinacao= -50
-        self.ajuste_motor= 200
-        self.angulo_passo_motor_vertical=0.0087890625
-        self.angulo_passo_motor_horizontal=0.018
+        self.passos_correcao_declinacao=-300
+        self.ajuste_motor=200
     
     ###########################################################################
     
@@ -83,33 +82,27 @@ class EncontraNorte:
     def corrige_posicao(self):
         amostras=5
         velocidade=100
-        velocidade_mv=130
         teste=self.le_sensor_posicao(amostras)
         print(teste)
         while teste<340 or teste>350:
             if teste<340 and teste>=170:
                 diferenca=340-teste
-                passos=round (diferenca/self.angulo_passo_motor_horizontal)
-                motor_horizontal_horario=mv("horario",25,passos,velocidade_mv)
-                motor_horizontal_horario.automatiza_rotacao()
+                passos=round (diferenca/0.0087890625)
+                self.motor_horizontal.horario(velocidade,passos)
                 teste=self.le_sensor_posicao(amostras)
                 print ("Esta na posição 1")
             
             elif teste>350:
                 diferenca=teste-350
-                passos= round (diferenca/self.angulo_passo_motor_horizontal)
-                #self.motor_horizontal.anti_horario(velocidade,passos)
-                motor_horizontal_anti_horario=mv("anti",25,passos,velocidade_mv)
-                motor_horizontal_anti_horario.automatiza_rotacao()
+                passos= round (diferenca/0.0087890625)
+                self.motor_horizontal.anti_horario(velocidade,passos)
                 teste=self.le_sensor_posicao(amostras)
                 print ("Esta na posição 2")
 
             else:
                 diferenca=teste+10
-                passos=round(diferenca/self.angulo_passo_motor_horizontal)
-                #self.motor_horizontal.anti_horario(velocidade,passos)
-                motor_horizontal_anti_horario=mv("anti",25,passos,velocidade_mv)
-                motor_horizontal_anti_horario.automatiza_rotacao()
+                passos=round(diferenca/0.0087890625)
+                self.motor_horizontal.anti_horario(velocidade,passos)
                 teste=self.le_sensor_posicao(amostras)
                 print ("Esta na posição 3")
 
@@ -122,17 +115,20 @@ class EncontraNorte:
         print(diferenca,quadrado)
         velocidade=100
         ## Condições para corrigir o nível quando o telescopio esta acima do nivel
-        if (diferenca>15) and (diferenca<19) and quadrado>0:
+        if (diferenca>0) and (diferenca<0.5) and quadrado>0:
             print(diferenca,quadrado)
             return True
-        elif (diferenca>19) and (diferenca<20) and quadrado>361:
-            self.motor_vertical.anti_horario(velocidade,48)
+        elif (diferenca>0.5) and (diferenca<10) and quadrado>0.25:
+            self.motor_vertical.anti_horario(velocidade,10)
             self.corrige_nivel()
-        elif diferenca>20 and diferenca<100 and quadrado>400:
-            self.motor_vertical.anti_horario(velocidade,180)
+        elif diferenca>10 and diferenca<30 and quadrado>100:
+            self.motor_vertical.anti_horario(velocidade,500)
             self.corrige_nivel()
-        elif diferenca<-20 and quadrado>500:
-            self.motor_vertical.anti_horario(velocidade,1320)
+        elif diferenca>30 and diferenca<100 and quadrado>900:
+            self.motor_vertical.anti_horario(velocidade,2000)
+            self.corrige_nivel()
+        elif diferenca<-20 and quadrado>8000:
+            self.motor_vertical.anti_horario(velocidade,4000)
             self.corrige_nivel()
         elif diferenca<-50 and quadrado>20000:
             self.motor_vertical.anti_horario(velocidade,2080)                    
@@ -141,54 +137,34 @@ class EncontraNorte:
         else:            
             self.motor_vertical.horario(130,800)
             self.corrige_nivel()
-        return True       
-      
-    ## Essa função implementa a chave_fim_de_curso
-    def corrige_nivel_fim_curso(self):
-        objeto=fc()
-        estado_chave=objeto.estado()
-        while estado_chave==1:
-            self.motor_vertical.anti_horario(100,10)
-            estado_chave=objeto.estado()
-        print("Chegou no fim")
-        return True
-
-    def verifica_chave(self):
-        objeto=fc()
-        estado_chave=objeto.estado()
-        if estado_chave==1:
-            return False
-        else:
-            return True    
+        return True  
+    
         
     ## Essa função automatiza o nivelamento do telescopio   
     def automatiza_correcao(self):
     ##self.verifica_nivel_inicio()
-        posicao= self.corrige_posicao()
-        chave=self.verifica_chave()
+        posicao= self.corrige_posicao()        
     ##print(posicao)
-        if posicao==True and chave==False:
-            nivel= self.corrige_nivel()
-            self.corrige_nivel_fim_curso()            
+        if posicao==True: 
+            nivel= self.corrige_nivel()                     
     ##print(nivel)            
             if nivel!=True:
                 print("Alguma coisa saiu errado")                
             else:
                 self.aponta_norte()
                 return True                
-        elif posicao==True and chave==True:
+        elif posicao==True :
             print("Esta nivelado")
             self.aponta_norte()
             return False          
         else:
             print("Alguma coisa saiu errado")
             return False
-        
+    
+    #####################################################################        
     ## Função utilizada para levantamento de dados            
-    def varias_leituras_horario(self):
+    def varias_leituras(self):
         a=0
-        passos=50
-        velocidade_mv=130
         ##430 uma volta
         while a<840:
             amostras=5
@@ -198,38 +174,18 @@ class EncontraNorte:
             c=self.le_sensor_eixo_y(amostras)
             d=self.le_sensor_eixo_z(amostras)
             ##Alterado de 8 passos para 15
-            ##self.motor_horizontal.horario(100,50)
-            motor_horizontal_horario=mv("horario",25,passos,velocidade_mv)
-            motor_horizontal_horario.automatiza_rotacao()
-            print(a,",",b,",",c,",",d)
-            #print(a,",",f,",",e)
-            ##print(a)
-            a+=1
-        return True
-    def varias_leituras_anti_horario(self):
-        a=0
-        passos=50
-        velocidade_mv=130
-        ##430 uma volta
-        while a<840:
-            amostras=5
-            #e=self.le_sensor_nivel(amostras)
-            #f=self.le_sensor_posicao(amostras)
-            b=self.le_sensor_eixo_x(amostras)
-            c=self.le_sensor_eixo_y(amostras)
-            d=self.le_sensor_eixo_z(amostras)
-            ##Alterado de 8 passos para 15            
-            motor_horizontal_anti_horario=mv("anti",25,passos,velocidade_mv)
-            motor_horizontal_anti_horario.automatiza_rotacao()
+            self.motor_horizontal.horario(100,50)
             print(a,",",b,",",c,",",d)
             #print(a,",",f,",",e)
             ##print(a)
             a+=1
         return True
     
+    ####################################################################
+    
     ## Função de ajuste da curva dos eixos yx e zx
     def calcula_funcao_ordem9(self):
-        amostras=3
+        amostras=15
         planoxy=self.le_sensor_posicao(amostras)
         planoxz= self.le_sensor_nivel(amostras)
         valor=planoxy
@@ -257,19 +213,15 @@ class EncontraNorte:
     def aponta_norte(self): ## Função que automatiza o apontamento 
         declinacao=self.declinacao
         acerta_posição=self.acerta_posição()
-        velocidade=130
-        velocidade_mv=230
+        velocidade=150        
         if acerta_posição==True:
             encontra_norte_magnetico=self.encontra_norte_magnetico()
             if encontra_norte_magnetico==True:                
                 print("O valor que retornou do encontra norte magnetico é :" , encontra_norte_magnetico)
-                passos=((round(((declinacao)/self.angulo_passo_motor_horizontal)) + self.passos_correcao_declinacao))
+                passos=((round(((declinacao)/0.0087890625)) + self.passos_correcao_declinacao)+self.ajuste_motor)
                 print("O valor dos passos são", passos)
-                #self.motor_horizontal.horario(velocidade,passos)
-                #self.motor_horizontal.anti_horario(velocidade,self.ajuste_motor)
-                motor_horizontal_horario=mv("horario",25,passos,velocidade_mv)
-                motor_horizontal_horario.automatiza_rotacao()
-                
+                self.motor_horizontal.horario(velocidade,passos)
+                self.motor_horizontal.anti_horario(velocidade,self.ajuste_motor)
                 return (print("Esta na posição"))
             else:
                 print("O valor que retornou do encontra norte magnetico é :" , encontra_norte_magnetico)
@@ -284,15 +236,12 @@ class EncontraNorte:
     do Norte Magnético, para agilizar a calibração"""
     def acerta_posição(self):
         amostras=15
-        velocidade=100
-        velocidade_mv=130
+        velocidade=100        
         valor=360-(self.le_sensor_posicao(amostras)) 
         if valor!=0:
-            passos=round(((valor)+2)/self.angulo_passo_motor_horizontal)
+            passos=round(((valor)+1)/0.0087890625)
             print("os passos são: ", passos)
-            ##self.motor_horizontal.horario(velocidade,passos)
-            motor_horizontal_horario=mv("horario",25,passos,velocidade_mv)
-            motor_horizontal_horario.automatiza_rotacao()
+            self.motor_horizontal.horario(velocidade,passos)
             return True        
         else:
             return False
@@ -300,23 +249,18 @@ class EncontraNorte:
     ## Essa função acha o Norte Magnético, com tolerância de 0,2º       
     def encontra_norte_magnetico(self):
         velocidade=130
-        velocidade_mv = 230
         passos=5
         amostras=30
         defasagem_telescopio_sensor= self.le_sensor_posicao(amostras)
         print("o valor do sensor é: ", defasagem_telescopio_sensor)        
         if defasagem_telescopio_sensor<10 or defasagem_telescopio_sensor>350:
-            while defasagem_telescopio_sensor<0.0 or defasagem_telescopio_sensor>0.2:
-                if defasagem_telescopio_sensor>0.2:
-                    #self.motor_horizontal.anti_horario(velocidade,(round (passos*1.3)))
-                    motor_horizontal_anti_horario=mv("anti",25,passos,velocidade_mv)
-                    motor_horizontal_anti_horario.automatiza_rotacao()                   
+            while defasagem_telescopio_sensor<0.2 or defasagem_telescopio_sensor>0.2:
+                if defasagem_telescopio_sensor>0 and defasagem_telescopio_sensor<6:
+                    self.motor_horizontal.anti_horario(velocidade,(round (passos*1.3)))
                     defasagem_telescopio_sensor= self.le_sensor_posicao(amostras)
                     print ("O valor do sensor é: ", defasagem_telescopio_sensor)
-                elif defasagem_telescopio_sensor>350:
-                    #self.motor_horizontal.horario(velocidade,passos)
-                    motor_horizontal_horario=mv("horario",25,passos,velocidade_mv)
-                    motor_horizontal_horario.automatiza_rotacao()                            
+                elif defasagem_telescopio_sensor>354 and defasagem_telescopio_sensor<360:
+                    self.motor_horizontal.horario(velocidade,passos)
                     defasagem_telescopio_sensor= self.le_sensor_posicao(amostras)
                     print ("O valor do sensor é: ", defasagem_telescopio_sensor)
             return True
