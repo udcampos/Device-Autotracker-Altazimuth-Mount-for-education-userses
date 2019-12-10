@@ -37,7 +37,7 @@ class EncontraNorte:
         self.motor_vertical = mt(12, 20, 16, 21)
         self.declinacao = declinacao
         self.passos_correcao_declinacao = 0
-        self.ajuste_motor = 200
+        self.ajuste_motor = -200
         self.amostra_posicao_1 = 10
         self.amostra_posicao_2 = 35
         self.amostra_nivel_1 = 10
@@ -154,16 +154,24 @@ class EncontraNorte:
         velocidade = 180
         # Condições para corrigir o nível quando o
         # telescopio esta acima do nivel
-        while diferenca > -2 and diferenca < -1 and quadrado > 0:
-            if diferenca > -1 and diferenca < 1 and quadrado > 0:
-                self.motor_vertical.anti_horario(velocidade, 6)
-            elif diferenca > 1 and diferenca < 3 and quadrado > 1:
-                self.motor_vertical.anti_horario(velocidade, 30)
-            elif diferenca > 3 and quadrado > 9:
-                self.motor_vertical.anti_horario(velocidade, 100)
-            diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
-        print("Os valores da diferença e do quadrado são: ")
-        print(diferenca, quadrado)
+        while diferenca > -1:
+            while diferenca > -1:
+                if diferenca > 5:
+                    self.motor_vertical.anti_horario(velocidade, 300)
+                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                    print(diferenca)
+                elif diferenca > 3:
+                    self.motor_vertical.anti_horario(velocidade, 100)
+                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                    print(diferenca)
+                elif diferenca > 0:
+                    self.motor_vertical.anti_horario(velocidade, 50)
+                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                    print(diferenca)
+                else:
+                    self.motor_vertical.anti_horario(velocidade, 10)
+                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                    print(diferenca)
         return True
 
     # Essa função automatiza o nivelamento do telescopio
@@ -287,20 +295,18 @@ class EncontraNorte:
     # Essa função acha o Norte Magnético, com tolerância de 0,2º
     def encontra_norte_magnetico(self):
         velocidade = 130
-        passos = 7
         amostras = 30
-
         defasagem_telescopio_sensor = self.le_sensor_posicao(amostras)
         print("o valor do sensor é: ", defasagem_telescopio_sensor)
         if defasagem_telescopio_sensor < 10 or defasagem_telescopio_sensor > 350:
             while defasagem_telescopio_sensor < 0 or defasagem_telescopio_sensor > 0.2:
-                if defasagem_telescopio_sensor > 0 and defasagem_telescopio_sensor < 6:
-                    self.motor_horizontal.anti_horario(velocidade, passos)
+                if defasagem_telescopio_sensor >= 0.2 and defasagem_telescopio_sensor < 6:
+                    self.motor_horizontal.anti_horario(velocidade, 10)
 
                     defasagem_telescopio_sensor = self.le_sensor_posicao(amostras)
                     print("O valor do sensor é: ", defasagem_telescopio_sensor)
                 elif defasagem_telescopio_sensor > 350 and defasagem_telescopio_sensor < 360:
-                    self.motor_horizontal.horario(velocidade, passos)
+                    self.motor_horizontal.horario(velocidade, 15)
 
                     defasagem_telescopio_sensor = self.le_sensor_posicao(amostras)
                     print("O valor do sensor é: ", defasagem_telescopio_sensor)
