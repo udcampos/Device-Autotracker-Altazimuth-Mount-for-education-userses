@@ -153,25 +153,24 @@ class EncontraNorte:
         diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
         velocidade = 180
         # Condições para corrigir o nível quando o
-        # telescopio esta acima do nivel
-        while diferenca > -1:
-            while diferenca > -1:
-                if diferenca > 5:
-                    self.motor_vertical.anti_horario(velocidade, 300)
-                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
-                    print(diferenca)
-                elif diferenca > 3:
-                    self.motor_vertical.anti_horario(velocidade, 100)
-                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
-                    print(diferenca)
-                elif diferenca > 0:
-                    self.motor_vertical.anti_horario(velocidade, 50)
-                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
-                    print(diferenca)
-                else:
-                    self.motor_vertical.anti_horario(velocidade, 10)
-                    diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
-                    print(diferenca)
+        # telescopio esta acima do nivel        
+        while diferenca > -0.1:
+            if diferenca > 5:
+                self.motor_vertical.anti_horario(velocidade, 300)
+                diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                print(diferenca)
+            elif diferenca > 3:
+                self.motor_vertical.anti_horario(velocidade, 200)
+                diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                print(diferenca)
+            elif diferenca > 0:
+                self.motor_vertical.anti_horario(velocidade, 20)
+                diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                print(diferenca)
+            else:
+                self.motor_vertical.anti_horario(velocidade, 10)
+                diferenca, quadrado = self.calcula_funcao_ordem9(amostra)
+                print(diferenca)
         return True
 
     # Essa função automatiza o nivelamento do telescopio

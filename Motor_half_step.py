@@ -34,7 +34,7 @@ class Motor:
         gpio.setup(self.bobina_A2, gpio.OUT)
         gpio.setup(self.bobina_B1, gpio.OUT)        
         gpio.setup(self.bobina_B2, gpio.OUT)
-        #print("Decide modo")     
+             
      
         ## Essa classe liga as saidas das GPIOs   
     def define_passos(self, w1, w2, w3, w4):
@@ -43,56 +43,45 @@ class Motor:
         gpio.output(self.bobina_A2, w2)
         gpio.output(self.bobina_B1, w3)
         gpio.output(self.bobina_B2, w4)
-        #print("w1: ", w1, "w2: ", w2, "w3: ", w3, "w4: ", w4)
+        
         
         
     def passo_1(self):
-        self.define_passos(1, 0, 0, 1)
-        #print("passo 1")
+        self.define_passos(1, 0, 0, 1)        
         return True
         
     def passo_2(self):
-        self.define_passos(0, 0, 0, 1)
-        #print("passo 2")
+        self.define_passos(0, 0, 0, 1)        
         return True
     
     def passo_3(self):
-        self.define_passos(0, 1, 0, 1)
-        #print("passo 3")
+        self.define_passos(0, 1, 0, 1)        
         return True  
       
     def passo_4(self):
-        self.define_passos(0, 1, 0, 0)
-        #print("passo 4")
+        self.define_passos(0, 1, 0, 0)       
         return True
     
     def passo_5(self):
-        self.define_passos(0, 1, 1, 0)
-        #print("passo 5")
+        self.define_passos(0, 1, 1, 0)        
         return True
     
     def passo_6(self):
-        self.define_passos(0, 0, 1, 0)
-        #print("passo 6")
+        self.define_passos(0, 0, 1, 0)        
         return True
     
     def passo_7(self):
-        self.define_passos(1, 0, 1, 0)
-        #print("passo 7")
+        self.define_passos(1, 0, 1, 0)        
         return True
     
     def passo_8(self):
-        self.define_passos(1, 0, 0, 0)
-        #print("passo 8")
+        self.define_passos(1, 0, 0, 0)        
         return True
         
-    def horario(self,tempo,passos):
-        #print("horario")
+    def horario(self,tempo,passos):        
         tempo= (tempo/10000)
-        contagem=0
-        #print("o valor de passos é: ", passos)
-        for passo in range(passos,0,-1):
-            #print(" O passo atual é: ", passo)            
+        contagem=0        
+        for passo in range(passos,0,-1):                     
             if contagem==0:
                 self.passo_1()
                 sleep(tempo)
@@ -128,16 +117,15 @@ class Motor:
                 continue           
             
             contagem=contagem+1
+            
+        gpio.setwarnings(False)
         gpio.cleanup()  
 
 
-    def anti_horario(self,tempo,passos):
-        #print("anti_horario")
+    def anti_horario(self,tempo,passos):        
         tempo= (tempo/10000)
-        contagem=0
-        #print("o valor de passos é: ", passos)
-        for passo in range(passos,0,-1):
-            #print(" O passo atual é: ", passo)                        
+        contagem=0        
+        for passo in range(passos,0,-1):                                 
             if contagem==0:
                 self.passo_8()
                 sleep(tempo)
@@ -170,8 +158,9 @@ class Motor:
                 self.passo_1()
                 sleep(tempo)
                 contagem=0
-                continue           
+                continue
             
             contagem=contagem+1
-          
+            
+        gpio.setwarnings(False)  
         gpio.cleanup()
